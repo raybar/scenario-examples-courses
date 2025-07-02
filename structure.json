@@ -3,6 +3,6 @@
     { "path": "scenario2" },
     { "path": "course1", "title": "Override title of course ONE" },
     { "path": "course2" }
-    { "path": "hardening linux" }
+    { "path": "hardening_linux" }
   ]
 }
