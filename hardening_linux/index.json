@@ -1,9 +1,7 @@
 {
-  "container": {
-    "image": "ubuntu/latest",
-    "init_commands": [
-      "apt update",
-      "apt install -y openssh-server ufw auditd audispd-plugins libpam-cracklib net-tools"
-    ]
+  "title": "Hardening Linux",
+  "description": "Laboratorio de Hardening Linux",
+  "backend": {
+    "imageid": "ubuntu"
   }
 }
