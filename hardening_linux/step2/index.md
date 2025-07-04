@@ -1,5 +1,3 @@
-### **step2/index.md**
-
 ```markdown
 ## Fortaleciendo el Acceso: SSH Seguro
 
