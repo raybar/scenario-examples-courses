@@ -30,7 +30,7 @@
         "title": "Delete a file",
         "text": "step7/index.md",
       }
-    ],
+    ]
   "backend": {
     "imageid": "ubuntu"
   }
