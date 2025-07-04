@@ -4,31 +4,31 @@
     "steps": [
       {
         "title": "Create an empty file",
-        "text": "step1/index.md",
+        "text": "step1/index.md"
       },
       {
         "title": "Create a file with text",
-        "text": "step2/index.md",
+        "text": "step2/index.md"
       },
       {
         "title": "Delete a file",
-        "text": "step3/index.md",
+        "text": "step3/index.md"
       },
       {
         "title": "Delete a file",
-        "text": "step4/index.md",
+        "text": "step4/index.md"
       },
       {
         "title": "Delete a file",
-        "text": "step5/index.md",
+        "text": "step5/index.md"
       },
       {
         "title": "Delete a file",
-        "text": "step6/index.md",
+        "text": "step6/index.md"
       },
       {
         "title": "Delete a file",
-        "text": "step7/index.md",
+        "text": "step7/index.md"
       }
     ],
   "backend": {
