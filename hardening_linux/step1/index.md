@@ -1,20 +1,20 @@
-### **step1/index.md**
+Create a new empty file called my-new-file in your home directory
 
-## Preparación del Terreno: Actualización y Limpieza
 
-Antes de implementar cualquier medida de seguridad, es crucial asegurar que el sistema esté **actualizado** y **limpio** de paquetes innecesarios. Esto reduce vulnerabilidades conocidas y mejora el rendimiento.
+Solution
+First we make sure we're in our home directory using
 
-**Tarea:** Ejecuta los siguientes comandos para actualizar los paquetes del sistema, eliminar paquetes obsoletos y limpiar el caché de APT.
+cd ~
+```{{exec}}
 
-```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt autoremove -y
-sudo apt autoclean
-```
+We can list the current directory using
 
-# **Verificación:**
-# Una vez que los comandos hayan terminado, el sistema estará actualizado. Puedes verificar la versión del kernel o el uptime si lo deseas, pero el enfoque principal es asegurar la ejecución de las actualizaciones.
+```plain
+pwd
+```{{exec}}
 
-```bash
-uname -r
-```
+Now we create the file
+
+```plain
+touch my-new-file
+```{{exec}}
