@@ -1,0 +1,100 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    privileged: true
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    container_name: jenkins
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - JAVA_OPTS="-Xmx1024m -Xms512m"
+    networks:
+      - devsecops_network
+
+  sonarqube:
+    image: sonarqube:lts-community
+    ports:
+      - "9001:9000" # SonarQube ahora en 9001
+    container_name: sonarqube
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    environment:
+      - SONAR_JDBC_URL=jdbc:h2:tcp://sonarqube_db:9092/sonar
+      - SONAR_SEARCH_HOSTS=sonarqube_es:9001
+    networks:
+      - devsecops_network
+
+  sonarqube_db:
+    image: osixia/light-h2database
+    ports:
+      - "9092:9092"
+    volumes:
+      - sonarqube_db_data:/opt/h2-data
+    networks:
+      - devsecops_network
+
+  sonarqube_es:
+    image: elasticsearch:7.17.15
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xmx512m -Xms512m"
+    volumes:
+      - sonarqube_es_data:/usr/share/elasticsearch/data
+    networks:
+      - devsecops_network
+
+  zap:
+    image: owasp/zap2docker-stable
+    container_name: owasp_zap
+    ports:
+      - "8081:8080" # ZAP UI/API si se desea acceder desde el host
+      - "8090:8090" # Puerto de escucha de ZAP
+    command: ["zap.sh", "-daemon", "-host", "0.0.0.0", "-port", "8090", "-config", "api.disablekey=true", "-config", "api.addrs.addr.name=.*", "-config", "api.addrs.addr.regex=true"]
+    networks:
+      - devsecops_network
+
+  archerysec:
+    image: archerysec/archerysec
+    container_name: archerysec
+    ports:
+      - "8000:8000"
+    volumes:
+      - archerysec_data:/opt/ArcherySec/db/
+    networks:
+      - devsecops_network
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    command: -H unix:///var/run/docker.sock
+    ports:
+      - "9000:9000" # Puerto principal de Portainer (web UI)
+      - "9443:9443" # Puerto HTTPS (opcional)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - devsecops_network
+
+volumes:
+  jenkins_home:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sonarqube_db_data:
+  sonarqube_es_data:
+  archerysec_data:
+  portainer_data:
+
+networks:
+  devsecops_network:
+    driver: bridge

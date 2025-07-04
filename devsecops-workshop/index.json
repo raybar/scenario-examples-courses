@@ -1,0 +1,75 @@
+{
+  "title": "DevSecOps Pipeline with Jenkins, SonarQube, ZAP, Trivy & ArcherySec",
+  "description": "Learn to build a comprehensive DevSecOps pipeline using Docker Compose to deploy Jenkins, SonarQube, OWASP ZAP, Trivy, ArcherySec, and Portainer. Perform static, dynamic, and image scans, and centralize results in ArcherySec.",
+  "details": {
+    "steps": [
+      {
+        "title": "Introduction & Setup",
+        "text": "content/step1.md"
+      },
+      {
+        "title": "Deploy DevSecOps Tools (Docker Compose)",
+        "text": "content/step2.md"
+      },
+      {
+        "title": "Initial Configuration & Access",
+        "text": "content/step3.md"
+      },
+      {
+        "title": "Run Comprehensive Security Pipeline",
+        "text": "content/step4.md"
+      },
+      {
+        "title": "Review Results in ArcherySec & Clean Up",
+        "text": "content/step5.md"
+      }
+    ],
+    "intro": {
+      "text": "content/step1.md",
+      "code": "setup.sh"
+    },
+    "finish": {
+      "text": "content/finish.md"
+    },
+    "assets": {
+      "host01": [
+        {
+          "file": "docker-compose.yml",
+          "target": "/root/devsecops-workshop/docker-compose.yml"
+        },
+        {
+          "file": "jenkins-pipeline/Jenkinsfile",
+          "target": "/root/devsecops-workshop/jenkins-pipeline/Jenkinsfile"
+        }
+      ]
+    }
+  },
+  "environment": {
+    "uilayout": "editor",
+    "showide": true,
+    "showdashboard": true,
+    "dashboards": [
+      {
+        "name": "Jenkins",
+        "port": 8080
+      },
+      {
+        "name": "SonarQube",
+        "port": 9001
+      },
+      {
+        "name": "ArcherySec",
+        "port": 8000
+      },
+      {
+        "name": "Portainer",
+        "port": 9000
+      }
+    ],
+    "hidefinishbutton": false
+  },
+  "backend": {
+    "imageid": "ubuntu",
+    "shell": "/bin/bash"
+  }
+}

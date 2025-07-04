@@ -1,0 +1,203 @@
+// Jenkinsfile for Comprehensive DevSecOps Security Pipeline
+
+pipeline {
+    agent any
+
+    environment {
+        // --- Aplicación Vulnerable DVWA ---
+        DVWA_IMAGE = "vulnerables/web-dvwa"
+        DVWA_CONTAINER_NAME = "dvwa-app"
+        DVWA_PORT = "8082" // Puerto en el host para acceder a DVWA
+        DVWA_URL = "http://host.docker.internal:${DVWA_PORT}" // URL para ZAP (desde Jenkins/Docker)
+                                                              // En Linux, podrías necesitar la IP de tu Docker host
+                                                              // o si ZAP está en la misma red, usar el nombre del servicio.
+
+        // --- Trivy ---
+        TRIVY_REPORT_DIR = "trivy_reports"
+        TRIVY_REPORT_JSON = "${TRIVY_REPORT_DIR}/trivy_report.json"
+
+        // --- SonarQube ---
+        SONAR_PROJECT_KEY = "dvwa-security-project"
+        SONAR_PROJECT_NAME = "DVWA Security Scan"
+        // Como DVWA es una imagen preconstruida, simularemos el código fuente para SonarQube.
+        // En un caso real, 'sonar.sources' apuntaría a tu código fuente real.
+        SONAR_SOURCES_PATH = "." // Esto es un placeholder; para DVWA, es más complejo.
+
+        // --- OWASP ZAP ---
+        ZAP_REPORT_DIR = "zap_reports"
+        ZAP_REPORT_HTML = "${ZAP_REPORT_DIR}/zap_report.html"
+        ZAP_REPORT_XML = "${ZAP_REPORT_DIR}/zap_report.xml"
+        ZAP_CONTAINER_NAME = "owasp-zap-scanner"
+
+        // --- ArcherySec ---
+        ARCHERYSEC_URL = "http://archerysec:8000" // Nombre del servicio en la red Docker
+        ARCHERYSEC_API_KEY = "your_archerysec_api_key" // ¡CAMBIA ESTO! Genera en ArcherySec -> Configuration -> API Key
+        ARCHERYSEC_PROJECT_NAME = "DVWA DevSecOps Project" // Nombre del proyecto en ArcherySec
+        ARCHERYSEC_SCANNER_NAME_TRIVY = "Trivy Scanner"
+        ARCHERYSEC_SCANNER_NAME_SONARQUBE = "SonarQube Scanner"
+        ARCHERYSEC_SCANNER_NAME_ZAP = "OWASP ZAP Scanner"
+    }
+
+    stages {
+        stage('Preparation') {
+            steps {
+                script {
+                    echo "--- Pipeline Started: Comprehensive Security Scan ---"
+                    sh "rm -rf ${TRIVY_REPORT_DIR} ${ZAP_REPORT_DIR}"
+                    sh "mkdir -p ${TRIVY_REPORT_DIR} ${ZAP_REPORT_DIR}"
+                }
+            }
+        }
+
+        stage('Build & Deploy DVWA') {
+            steps {
+                script {
+                    echo "--- Pulling and Deploying DVWA Application ---"
+                    // Elimina el contenedor anterior si existe
+                    sh "docker rm -f ${DVWA_CONTAINER_NAME} || true"
+                    // Ejecuta DVWA. Asegúrate de que el puerto no esté en uso.
+                    // Para host.docker.internal, necesitas --network host si Jenkins no está en el mismo host o si la conectividad es un problema.
+                    // Para simplificar, asumimos que ZAP puede alcanzar esta URL.
+                    sh "docker run -d --name ${DVWA_CONTAINER_NAME} -p ${DVWA_PORT}:80 ${DVWA_IMAGE}"
+                    echo "DVWA should be accessible at ${DVWA_URL}"
+                    sh "sleep 15" // Dar tiempo a DVWA para iniciar
+                }
+            }
+        }
+
+        stage('Scan Docker Image with Trivy') {
+            steps {
+                script {
+                    echo "--- Running Trivy Scan on ${DVWA_IMAGE} ---"
+                    // -v: Monta el directorio de reportes
+                    // --format json: Salida en JSON
+                    // --output: Archivo de salida
+                    sh """
+                    docker run --rm \\
+                        -v "${pwd()}/${TRIVY_REPORT_DIR}:/root/.cache/" \\
+                        aquasec/trivy:latest \\
+                        image --format json --output /root/.cache/trivy_report.json ${DVWA_IMAGE} || true
+                    """
+                    archiveArtifacts artifacts: "${TRIVY_REPORT_DIR}/*", fingerprint: true
+                    echo "Trivy scan complete. Report: ${TRIVY_REPORT_JSON}"
+                }
+            }
+        }
+
+        stage('Static Code Analysis with SonarQube') {
+            steps {
+                script {
+                    echo "--- Running SonarQube Static Analysis ---"
+                    // Para DVWA, SonarQube escaneará un proyecto vacío o genérico.
+                    // En un proyecto real, aquí integrarías tu código fuente.
+                    // NOTA: Para escanear DVWA como un proyecto PHP real, necesitarías su código fuente.
+                    // Aquí simulamos un escaneo de un "proyecto" para mostrar la integración.
+                    withSonarQubeEnv('Your SonarQube Server Name') { // Reemplaza 'Your SonarQube Server Name' con el nombre que configuraste en Jenkins
+                        sh "ls -la" // Solo para verificar el workspace
+                        sh "${tool 'SonarQube Scanner'}/bin/sonar-scanner \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                            -Dsonar.sources=${SONAR_SOURCES_PATH}"
+                    }
+                    echo "SonarQube analysis complete. Check SonarQube at http://localhost:9001 for results."
+                }
+            }
+            post {
+                success {
+                    // Espera a que el informe de SonarQube se procese (opcional, pero útil)
+                    timeout(time: 5, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true
+                    }
+                }
+            }
+        }
+
+        stage('Dynamic Analysis with OWASP ZAP') {
+            steps {
+                script {
+                    echo "--- Running OWASP ZAP Dynamic Scan ---"
+                    echo "Targeting DVWA at: ${DVWA_URL}"
+
+                    sh """
+                    docker run --rm \\
+                        -v "${pwd()}/${ZAP_REPORT_DIR}:/zap/wrk/:rw" \\
+                        --name ${ZAP_CONTAINER_NAME} \\
+                        owasp/zap2docker-stable zap.sh -cmd \\
+                        -quickurl ${DVWA_URL} \\
+                        -quickprogress \\
+                        -quickout /zap/wrk/zap_report.xml \\
+                        -formathml /zap/wrk/zap_report.html \\
+                        -addonupdate \\
+                        -addoninstall pscanrulesbeta \\
+                        -addoninstall pscanrulesalpha || true
+                    """
+                    archiveArtifacts artifacts: "${ZAP_REPORT_DIR}/*", fingerprint: true
+                    echo "ZAP scan complete. Reports: ${ZAP_REPORT_XML}, ${ZAP_REPORT_HTML}"
+                }
+            }
+        }
+
+        stage('Integrate with ArcherySec') {
+            steps {
+                script {
+                    echo "--- Sending Scan Results to ArcherySec ---"
+
+                    // 1. Send Trivy Report to ArcherySec
+                    echo "Sending Trivy report..."
+                    sh "curl -X POST -H \"Content-Type: application/json\" -H \"Authorization: Token ${ARCHERYSEC_API_KEY}\" \
+                        -d @${TRIVY_REPORT_JSON} \
+                        ${ARCHERYSEC_URL}/api/v1/scan_results/add/?scan_type=trivy_scan&project_name=${ARCHERYSEC_PROJECT_NAME}&scanner_name=${ARCHERYSEC_SCANNER_NAME_TRIVY}" || true
+
+                    // 2. Send SonarQube Report to ArcherySec (SonarQube API)
+                    echo "Sending SonarQube report..."
+                    // ArcherySec puede importar resultados de SonarQube directamente desde su API.
+                    // Para esto, ArcherySec necesitará acceso a la API de SonarQube y un token de SonarQube.
+                    // Esto es más complejo que un simple `curl`, a menudo requiere una conexión API directa.
+                    // Como alternativa, si ArcherySec soporta un formato de informe SonarQube (ej. SARIF),
+                    // SonarQube puede generarlo y ArcherySec importarlo.
+                    // Por simplicidad, aquí es conceptual. ArcherySec tiene integración nativa.
+                    echo "ArcherySec has native integration with SonarQube. Set it up in ArcherySec's UI for live data."
+                    echo "Alternatively, you'd export a report from SonarQube (if possible) and import it."
+
+
+                    // 3. Send OWASP ZAP Report to ArcherySec
+                    echo "Sending ZAP report..."
+                    sh "curl -X POST -H \"Content-Type: application/xml\" -H \"Authorization: Token ${ARCHERYSEC_API_KEY}\" \
+                        -d @${ZAP_REPORT_XML} \
+                        ${ARCHERYSEC_URL}/api/v1/scan_results/add/?scan_type=zap_scan&project_name=${ARCHERYSEC_PROJECT_NAME}&scanner_name=${ARCHERYSEC_SCANNER_NAME_ZAP}" || true
+
+                    echo "Integration with ArcherySec complete. Check ArcherySec dashboard at http://localhost:8000."
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    echo "--- Cleaning up DVWA application ---"
+                    sh "docker rm -f ${DVWA_CONTAINER_NAME} || true"
+                    echo "Cleanup complete."
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline finished."
+        }
+        success {
+            echo "Security pipeline completed successfully. Check reports and ArcherySec."
+        }
+        failure {
+            echo "Security pipeline failed. Check logs for details."
+        }
+    }
+}
+
+// jenkins-pipeline/Jenkinsfile
+// ... (contenido completo del Jenkinsfile anterior) ...
+// Asegúrate de que las variables de entorno estén configuradas para Killercoda:
+// DVWA_URL = "http://localhost:${DVWA_PORT}" // ZAP en Killercoda puede ver host's localhost
+// ARCHERYSEC_URL = "http://archerysec:8000" // Nombre del servicio Docker
+// Y el ARCHERYSEC_API_KEY se deja como placeholder para que el usuario lo cambie.
