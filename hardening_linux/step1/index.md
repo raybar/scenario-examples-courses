@@ -1,9 +1,12 @@
-Create a new empty file called my-new-file in your home directory
 
+Create a new empty file called `my-new-file` in your home directory
 
-Solution
+<br>
+
+### Solution
 First we make sure we're in our home directory using
 
+```plain
 cd ~
 ```{{exec}}
 
