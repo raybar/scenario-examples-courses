@@ -1,7 +1,6 @@
 {
   "title": "Hardening Linux",
   "description": "Laboratorio de Hardening Linux",
-    },
     "steps": [
       {
         "title": "Create an empty file",
@@ -32,8 +31,10 @@
         "text": "step7/index.md",
       }
     ],
-    }
-  },
+  "backend": {
+    "imageid": "ubuntu"
+  }
+}
   "backend": {
     "imageid": "ubuntu"
   }
