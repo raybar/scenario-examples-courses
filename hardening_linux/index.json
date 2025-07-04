@@ -33,9 +33,5 @@
     ],
   "backend": {
     "imageid": "ubuntu"
-  }
-}
-  "backend": {
-    "imageid": "ubuntu"
-  }
+  },
 }
