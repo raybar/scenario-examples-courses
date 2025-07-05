@@ -1,6 +1,6 @@
 {
-  "title": "DevSecOps Pipeline with Jenkins, SonarQube, ZAP, Trivy & ArcherySec",
-  "description": "Learn to build a comprehensive DevSecOps pipeline using Docker Compose to deploy Jenkins, SonarQube, OWASP ZAP, Trivy, ArcherySec, and Portainer. Perform static, dynamic, and image scans, and centralize results in ArcherySec.",
+  "title": "DevSecOps Pipeline con Jenkins, SonarQube, ZAP, Trivy & ArcherySec",
+  "description": "Construir un pipeline DevSecOps integral utilizando Docker Compose para desplegar Jenkins, SonarQube, OWASP ZAP, Trivy, ArcherySec y Portainer. Aprenda a realizar escaneos estáticos, dinámicos, de imagenes, y con los resultados en ArcherySec.",
   "details": {
     "steps": [
       {
@@ -34,7 +34,7 @@
       "host01": [
         {
           "file": "setup.sh",
-          "target": "/root/setup.sh"
+          "target": "/setup.sh"
         },
         {
           "file": "docker-compose.yml",
