@@ -33,27 +33,8 @@ services:
     networks:
       - devsecops_network
 
-  sonarqube_db:
-    image: osixia/light-h2database
-    ports:
-      - "9092:9092"
-    volumes:
-      - sonarqube_db_data:/opt/h2-data
-    networks:
-      - devsecops_network
-
-  sonarqube_es:
-    image: elasticsearch:7.17.15
-    environment:
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xmx512m -Xms512m"
-    volumes:
-      - sonarqube_es_data:/usr/share/elasticsearch/data
-    networks:
-      - devsecops_network
-
   zap:
-    image: owasp/zap2docker-stable
+    image: zaproxy/zap-stable:latest
     container_name: owasp_zap
     ports:
       - "8081:8080" # ZAP UI/API si se desea acceder desde el host
