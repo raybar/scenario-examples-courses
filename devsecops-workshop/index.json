@@ -25,14 +25,17 @@
       }
     ],
     "intro": {
-      "text": "content/step1.md",
-      "code": "setup.sh"
+      "text": "content/step1.md"
     },
     "finish": {
       "text": "content/finish.md"
     },
     "assets": {
       "host01": [
+        {
+          "file": "setup.sh",
+          "target": "/root/setup.sh"
+        },
         {
           "file": "docker-compose.yml",
           "target": "/root/devsecops-workshop/docker-compose.yml"
