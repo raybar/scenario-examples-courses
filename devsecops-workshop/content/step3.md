@@ -1,5 +1,3 @@
-**`content/step3.md` (Configuración Inicial y Acceso)**
-
 ```markdown
 # Paso 3: Configuración Inicial y Acceso
 
