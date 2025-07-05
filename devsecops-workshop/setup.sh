@@ -14,7 +14,7 @@ echo "Files copied successfully."
 
 # Start Docker Compose services in detached mode
 echo "Starting Docker Compose services... This may take a few minutes."
-docker compose up -d
+docker-compose up -d
 
 # Wait for Jenkins to be ready (optional, but good for stability)
 # This is a basic check, a more robust check would look for a specific log message.
