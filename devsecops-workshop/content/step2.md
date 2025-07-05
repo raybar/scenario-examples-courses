@@ -8,4 +8,4 @@ En el paso anterior, nuestro script `setup.sh` automáticamente:
 Puedes verificar los contenedores en ejecución usando el siguiente comando en la **Terminal**:
 
 ```bash
-docker compose ps
+docker-compose ps
